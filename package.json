@@ -1,0 +1,15 @@
+{
+  "name": "geovec-map-generator",
+  "version": "1.0.0",
+  "description": "Natural Earth vector map generator — export ready SVGs of countries and cities",
+  "type": "module",
+  "scripts": {
+    "dev":   "npx serve . --listen 3000 --cors",
+    "start": "npx serve . --listen 3000 --cors"
+  },
+  "devDependencies": {
+    "serve": "^14.2.3"
+  },
+  "keywords": ["map", "svg", "natural-earth", "d3", "geojson"],
+  "license": "MIT"
+}

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MapNest — Vector Map Generator</title>
+  <meta name="description" content="Generate clean vector maps of countries and cities." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="src/style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h1 class="logo-title">MapNest</h1>
+        <p class="logo-subtitle">Vector Map Generator</p>
+      </div>
+
+      <!-- Map Type Section -->
+      <section class="control-section">
+        <h2 class="section-title">Map Type</h2>
+        <div class="map-type-options">
+          
+          <label class="map-type-label">
+            <input type="radio" name="mapType" value="world" class="map-type-radio" />
+            <span class="custom-radio">
+              <span class="custom-radio-inner" style="background:var(--accent-blue)"></span>
+            </span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            World Map
+          </label>
+
+          <label class="map-type-label active">
+            <input type="radio" name="mapType" value="country" class="map-type-radio" checked />
+            <span class="custom-radio">
+              <span class="custom-radio-inner active-inner" style="background:var(--accent-cyan)"></span>
+            </span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9h18M9 21V9"/><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+            Country Map
+          </label>
+
+          <label class="map-type-label">
+            <input type="radio" name="mapType" value="city" class="map-type-radio" />
+            <span class="custom-radio">
+              <span class="custom-radio-inner" style="background:var(--accent-white)"></span>
+            </span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            City Map
+          </label>
+
+          <label class="map-type-label">
+            <input type="radio" name="mapType" value="region" class="map-type-radio" />
+            <span class="custom-radio">
+              <span class="custom-radio-inner" style="background:var(--accent-red)"></span>
+            </span>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11a3 3 0 1 0 6 0 3 3 0 0 0-6 0z"/><path d="M17.657 16.657L13.414 20.9a2 2 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/></svg>
+            Region Map
+          </label>
+
+        </div>
+      </section>
+
+      <!-- Select Country Section -->
+      <section class="control-section">
+        <h2 class="section-title">Select Country</h2>
+        
+        <div class="search-container">
+          <div class="search-input-wrapper">
+            <span class="search-prefix" id="search-prefix">Search...</span>
+            <input type="text" id="search-input" class="search-input" placeholder="" autocomplete="off" spellcheck="false" />
+            <button class="search-clear" id="search-clear" aria-label="Clear search" style="display:none">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="search-dropdown" id="search-dropdown"></div>
+        </div>
+
+        <label class="checkbox-container">
+          <input type="checkbox" id="neighbor-toggle" checked />
+          <span class="checkmark"></span>
+          Show neighboring countries
+        </label>
+      </section>
+
+      <!-- Style Section -->
+      <section class="control-section style-section">
+        <h2 class="section-title">Style</h2>
+        <div class="select-wrapper">
+          <select id="style-select" class="dropdown-select">
+            <option value="minimalistGray">Minimalist Gray</option>
+            <option value="outlineOnly">Outline Only</option>
+            <option value="filledWithBorders">Filled with Borders</option>
+            <option value="solidFilled">Solid Filled</option>
+            <option value="darkMode">Dark Mode</option>
+            <option value="vibrant">Vibrant</option>
+            <option value="earthTones">Earth Tones</option>
+            <option value="midnightBlue">Midnight Blue</option>
+            <option value="posterGray">Poster Gray</option>
+            <option value="dual" selected>3-Style Combo (All in One)</option>
+          </select>
+          <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+      </section>
+
+      <!-- Generate Button -->
+      <div class="action-footer">
+        <button id="btn-generate" class="btn-generate">Generate Map</button>
+        <button id="btn-export" class="btn-export">Export SVG</button>
+      </div>
+    </aside>
+
+    <!-- Main Canvas -->
+    <main class="main-content">
+      <div class="map-viewport" id="map-viewport">
+        <!-- Rendered maps go here -->
+        <div class="empty-state" id="empty-state">
+          <p>Search for a location and click <strong>Generate Map</strong></p>
+        </div>
+        
+        <div class="loading-state" id="loading-state" style="display:none">
+          <div class="spinner"></div>
+          <p>Generating Vector Cartography...</p>
+        </div>
+
+        <div class="map-output" id="map-output">
+          <div class="svg-container" id="svg-container"></div>
+          <div class="map-label" id="map-label"></div>
+        </div>
+      </div>
+    </main>
+
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

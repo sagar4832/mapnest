@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html><body>
+<script type="module">
+  import { loadCountries } from './src/dataLoader.js';
+  window.runTest = async () => {
+    try {
+      const countries = await loadCountries();
+      let html = "";
+      for (const f of countries.features) {
+        if (f.id === '050' || f.id === '048' || f.id === '044' || String(f.id).includes('50') || f.properties.name === 'Bangladesh') {
+           html += "ID: '" + f.id + "', Name: '" + f.properties.name + "', numericId: " + f.properties.numericId + "<br>";
+        }
+      }
+      document.body.innerHTML += '<div id="dump">' + (html || 'Nothing matched!') + '</div>';
+    } catch(err) {
+      document.body.innerHTML += '<div id="error">' + err.message + '</div>';
+    }
+  };
+  window.runTest();
+</script>
+</body></html>
