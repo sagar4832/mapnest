@@ -34,7 +34,7 @@ const mapLabel         = $('map-label');
 
 const btnGenerate      = $('btn-generate');
 const btnExport        = $('btn-export');
-const styleSelect      = $('style-select');
+const styleRadios      = document.querySelectorAll('.style-radio');
 const neighborToggle   = $('neighbor-toggle');
 
 const mapTypeRadios    = document.querySelectorAll('.map-type-radio');
@@ -70,10 +70,22 @@ function bindEvents() {
   // Keyboard nav inside dropdown
   searchDropdown.addEventListener('keydown', onDropdownKeydown);
   
+  function getSelectedStyle() {
+    const checked = document.querySelector('.style-radio:checked');
+    return checked ? checked.value : 'minimalistGray';
+  }
+
   // Style config auto-update if map is already generated
-  styleSelect.addEventListener('change', () => {
-    if (mapOutput.classList.contains('active')) handleGenerate();
+  styleRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+      // Update UI classes
+      document.querySelectorAll('.style-card').forEach(card => card.classList.remove('active'));
+      radio.closest('.style-card').classList.add('active');
+
+      if (mapOutput.classList.contains('active')) handleGenerate();
+    });
   });
+  
   neighborToggle.addEventListener('change', () => {
     if (mapOutput.classList.contains('active')) handleGenerate();
   });
@@ -219,13 +231,18 @@ async function handleGenerate() {
   const feature = state.selectedFeature;
   const name = state.mode === 'world' ? 'World' : (feature.properties.name || feature.properties.NAME || '');
   
+  // Make container active early so its dimensions (clientWidth) are non-zero for D3
+  mapOutput.classList.add('active');
+  
   console.log(`Generating ${state.mode} map for: ${name}`, feature);
 
   try {
     if (!state.countries) state.countries = await loadCountries();
     
+    const selectedStyle = document.querySelector('.style-radio:checked')?.value || 'minimalistGray';
+
     if (state.mode === 'world') {
-      renderWorldMap(svgContainer, state.countries, styleSelect.value);
+      renderWorldMap(svgContainer, state.countries, selectedStyle);
     } else if (state.mode === 'country') {
       const [statesData, riversData] = await Promise.all([loadStates(), loadRivers()]);
       renderCountryMap(
@@ -235,7 +252,7 @@ async function handleGenerate() {
         statesData, 
         riversData, 
         neighborToggle.checked, 
-        styleSelect.value
+        selectedStyle
       );
     } else if (state.mode === 'region') {
       console.log("Fetching region data...");
@@ -252,19 +269,19 @@ async function handleGenerate() {
         statesData, 
         districtsData, 
         riversData,
-        styleSelect.value
+        selectedStyle
       );
     } else if (state.mode === 'city') {
-      renderCityMap(svgContainer, feature, state.countries, neighborToggle.checked, styleSelect.value);
+      renderCityMap(svgContainer, feature, state.countries, neighborToggle.checked, selectedStyle);
     }
     
     mapLabel.textContent = `${name} MAP`.toUpperCase();
     hideLoading();
-    mapOutput.classList.add('active');
     
   } catch (err) {
     console.error('Render error:', err);
     hideLoading();
+    mapOutput.classList.remove('active');
     emptyState.style.display = 'block';
   }
 }
@@ -298,10 +315,11 @@ function clearMap() {
 
 // ── Export ───────────────────────────────────────────────────
 async function handleExport() {
-  if (!state.selectedFeature || !mapOutput.classList.contains('active')) {
+  if ((state.mode !== 'world' && !state.selectedFeature) || !mapOutput.classList.contains('active')) {
     alert("Generate a map first.");
     return;
   }
+
 
   btnExport.textContent = 'Generating…';
   
@@ -310,8 +328,9 @@ async function handleExport() {
   if (svgs.length === 0) return;
   
   svgs.forEach((svg, i) => {
-    const rawName = state.selectedFeature.properties.name || 'map';
+    const rawName = state.mode === 'world' ? 'world-map' : (state.selectedFeature.properties.name || 'map');
     const suffix = svgs.length > 1 ? `-style-${i+1}` : '';
+
     exportSVG(svg, rawName + suffix);
   });
   

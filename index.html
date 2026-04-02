@@ -87,21 +87,39 @@
 
       <!-- Style Section -->
       <section class="control-section style-section">
-        <h2 class="section-title">Style</h2>
-        <div class="select-wrapper">
-          <select id="style-select" class="dropdown-select">
-            <option value="minimalistGray">Minimalist Gray</option>
-            <option value="outlineOnly">Outline Only</option>
-            <option value="filledWithBorders">Filled with Borders</option>
-            <option value="solidFilled">Solid Filled</option>
-            <option value="darkMode">Dark Mode</option>
-            <option value="vibrant">Vibrant</option>
-            <option value="earthTones">Earth Tones</option>
-            <option value="midnightBlue">Midnight Blue</option>
-            <option value="posterGray">Poster Gray</option>
-            <option value="dual" selected>3-Style Combo (All in One)</option>
-          </select>
-          <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+        <h2 class="section-title">🎨 Map Style</h2>
+        <div class="style-grid">
+          
+          <label class="style-card">
+            <input type="radio" name="mapStyle" value="outlineOnly" class="style-radio" />
+            <div class="style-icon">✏️</div>
+            <div class="style-name">Line Art</div>
+          </label>
+
+          <label class="style-card active">
+            <input type="radio" name="mapStyle" value="minimalistGray" class="style-radio" checked />
+            <div class="style-icon">🗺️</div>
+            <div class="style-name">Detailed</div>
+          </label>
+
+          <label class="style-card">
+            <input type="radio" name="mapStyle" value="silhouetteBlack" class="style-radio" />
+            <div class="style-icon">⬛</div>
+            <div class="style-name">Silhouette</div>
+          </label>
+
+          <label class="style-card">
+            <input type="radio" name="mapStyle" value="vibrant" class="style-radio" />
+            <div class="style-icon">🎨</div>
+            <div class="style-name">Colored</div>
+          </label>
+
+          <label class="style-card">
+            <input type="radio" name="mapStyle" value="dual" class="style-radio" />
+            <div class="style-icon">🌈</div>
+            <div class="style-name">Multi-Color</div>
+          </label>
+
         </div>
       </section>
 

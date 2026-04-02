@@ -126,6 +126,17 @@ export async function loadStates() {
   const res = await fetch(STATES_URL);
   if (!res.ok) throw new Error('Failed to fetch states');
   _states = await res.json();
+  
+  // Inject highly detailed Bangladesh divisions/districts so they appear natively
+  try {
+    const bd_districts = await loadDistricts(50);
+    if (bd_districts && bd_districts.features) {
+      _states.features = [..._states.features, ...bd_districts.features];
+    }
+  } catch (e) {
+    console.warn('Could not inject BD districts:', e);
+  }
+  
   return _states;
 }
 

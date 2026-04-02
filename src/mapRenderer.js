@@ -29,8 +29,8 @@ export const MAP_STYLES = {
 
 /** Render Country Map — Returns an Array of SVGs based on styleMode */
 export function renderCountryMap(container, feature, allCountries, statesData, riversData, showNeighbors = false, styleMode = 'dual') {
-  const w = (container.clientWidth / 2) || 450;
-  const h = container.clientHeight || 560;
+  const w = 800;
+  const h = 800;
   container.innerHTML = '';
 
   const proj = makeProjection('mercator')
@@ -78,7 +78,7 @@ export function renderCountryMap(container, feature, allCountries, statesData, r
     const clipped = g.append('g').attr('clip-path', `url(#${clipId})`);
 
     // Filter geometries rigorously to the selected country bounds to prevent huge vector files and bleed
-    const countryStates = statesData ? statesData.features.filter(s => {
+    let countryStates = statesData ? statesData.features.filter(s => {
       const targetA3 = feature.properties.adm0_a3;
       const targetISO = feature.properties.iso_a2;
       
@@ -87,6 +87,12 @@ export function renderCountryMap(container, feature, allCountries, statesData, r
                     
       return match || (path(s) && d3.geoContains(feature, d3.geoCentroid(s)));
     }) : [];
+    
+    // Bangladesh fallback for 50m data: usually missing states, so we treat it explicitly if passed as statesData
+    if (countryStates.length === 0 && (feature.properties.numericId == 50 || feature.properties.adm0_a3 === 'BGD')) {
+       // If the statesData happens to contain BD districts, we'll try to map them anyway via geometry intersect
+       countryStates = statesData ? statesData.features.filter(s => path(s) && d3.geoContains(feature, d3.geoCentroid(s))) : [];
+    }
 
     const countryRivers = riversData ? riversData.features.filter(r => {
       const targetA3 = feature.properties.adm0_a3;
@@ -156,13 +162,12 @@ export function renderCountryMap(container, feature, allCountries, statesData, r
 
 /** Render World Map — Returns an Array of SVGs for global view */
 export function renderWorldMap(container, allCountries, styleMode = 'dual') {
-  const w = (container.clientWidth / 2) || 450;
-  const h = container.clientHeight || 560;
+  const w = 1000;
+  const h = 600;
   container.innerHTML = '';
 
   const proj = d3.geoMercator()
-    .scale(w / 6.3)
-    .translate([w / 2, h / 1.5])
+    .fitExtent([[PAD, PAD], [w - PAD, h - PAD]], allCountries)
     .clipExtent([[0, 0], [w, h]]);
   const path = d3.geoPath().projection(proj);
 
@@ -203,8 +208,8 @@ export function renderWorldMap(container, allCountries, styleMode = 'dual') {
 
 /** Render a city: country context + city pin */
 export function renderCityMap(container, cityFeature, allCountries, showNeighbors, styleMode = 'dual') {
-  const w = (container.clientWidth / 2) || 450;
-  const h = container.clientHeight || 560;
+  const w = 800;
+  const h = 800;
   container.innerHTML = '';
 
   const [lng, lat] = cityFeature.geometry.coordinates;
@@ -274,8 +279,8 @@ export function renderCityMap(container, cityFeature, allCountries, showNeighbor
 
 /** Render Region Map (Subdivisions/Districts) */
 export function renderRegionMap(container, countryFeature, allCountries, statesData, districtsData, riversData, styleMode = 'dual') {
-  const w = (container.clientWidth / 2) || 450;
-  const h = container.clientHeight || 560;
+  const w = 800;
+  const h = 800;
   container.innerHTML = '';
 
   const proj = d3.geoMercator()
