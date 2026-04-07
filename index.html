@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MapNest — Vector Map Generator</title>
+  <title>sagar webnest — Vector Map Generator</title>
   <meta name="description" content="Generate clean vector maps of countries and cities." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -15,7 +15,7 @@
     <!-- Left Sidebar -->
     <aside class="sidebar">
       <div class="sidebar-header">
-        <h1 class="logo-title">MapNest</h1>
+        <h1 class="logo-title">sagar webnest</h1>
         <p class="logo-subtitle">Vector Map Generator</p>
       </div>
 
@@ -68,11 +68,20 @@
         <h2 class="section-title">Select Country</h2>
         
         <div class="search-container">
-          <div class="search-input-wrapper">
-            <span class="search-prefix" id="search-prefix">Search...</span>
-            <input type="text" id="search-input" class="search-input" placeholder="" autocomplete="off" spellcheck="false" />
+          <!-- Selection Chip (Visible when a country is selected) -->
+          <div id="selection-chip" class="selection-chip">
+            <span class="chip-label">Selected:</span>
+            <span id="chip-value" class="chip-value">Bangladesh</span>
+            <button id="chip-remove" class="chip-remove" title="Remove selection">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+
+          <!-- Search Input Wrapper (Hidden when a country is selected) -->
+          <div id="search-input-wrapper" class="search-input-wrapper">
+            <input type="text" id="search-input" class="search-input" placeholder="Search country..." autocomplete="off" spellcheck="false" />
             <button class="search-clear" id="search-clear" aria-label="Clear search" style="display:none">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
             </button>
           </div>
           <div class="search-dropdown" id="search-dropdown"></div>
@@ -86,40 +95,21 @@
       </section>
 
       <!-- Style Section -->
-      <section class="control-section style-section">
-        <h2 class="section-title">🎨 Map Style</h2>
-        <div class="style-grid">
-          
-          <label class="style-card">
-            <input type="radio" name="mapStyle" value="outlineOnly" class="style-radio" />
-            <div class="style-icon">✏️</div>
-            <div class="style-name">Line Art</div>
-          </label>
-
-          <label class="style-card active">
-            <input type="radio" name="mapStyle" value="minimalistGray" class="style-radio" checked />
-            <div class="style-icon">🗺️</div>
-            <div class="style-name">Detailed</div>
-          </label>
-
-          <label class="style-card">
-            <input type="radio" name="mapStyle" value="silhouetteBlack" class="style-radio" />
-            <div class="style-icon">⬛</div>
-            <div class="style-name">Silhouette</div>
-          </label>
-
-          <label class="style-card">
-            <input type="radio" name="mapStyle" value="vibrant" class="style-radio" />
-            <div class="style-icon">🎨</div>
-            <div class="style-name">Colored</div>
-          </label>
-
-          <label class="style-card">
-            <input type="radio" name="mapStyle" value="dual" class="style-radio" />
-            <div class="style-icon">🌈</div>
-            <div class="style-name">Multi-Color</div>
-          </label>
-
+      <section class="control-section">
+        <h2 class="section-title">Style</h2>
+        <div class="style-select-wrapper">
+          <select id="style-select" class="style-select">
+            <option value="minimalistGray">Minimalist Gray</option>
+            <option value="outlineOnly">Outline Only</option>
+            <option value="filledBorders">Filled with Borders</option>
+            <option value="solidFilled">Solid Filled</option>
+            <option value="darkMode">Dark Mode</option>
+            <option value="vibrant">Vibrant</option>
+            <option value="earthTones">Earth Tones</option>
+            <option value="midnightBlue">Midnight Blue</option>
+            <option value="posterGray">Poster Gray</option>
+            <option value="combo3">3-Style Combo (All in One)</option>
+          </select>
         </div>
       </section>
 

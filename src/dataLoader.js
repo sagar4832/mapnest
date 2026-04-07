@@ -131,6 +131,7 @@ export async function loadStates() {
   try {
     const bd_districts = await loadDistricts(50);
     if (bd_districts && bd_districts.features) {
+      _states.features = _states.features.filter(f => f.properties.adm0_a3 !== 'BGD' && f.properties.iso_a2 !== 'BD');
       _states.features = [..._states.features, ...bd_districts.features];
     }
   } catch (e) {
@@ -154,8 +155,14 @@ export async function loadDistricts(countryCode) {
   
   if (_bd_districts) return _bd_districts;
   
-  const res = await fetch(BD_DISTRICTS_URL);
-  if (!res.ok) throw new Error('Failed to fetch BD districts');
-  _bd_districts = await res.json();
-  return _bd_districts;
+  try {
+    const res = await fetch(BD_DISTRICTS_URL);
+    if (!res.ok) throw new Error('Failed to fetch BD districts');
+    _bd_districts = await res.json();
+    return _bd_districts;
+  } catch (e) {
+    console.warn("Could not fetch detailed districts data:", e);
+    return null;
+  }
 }
+

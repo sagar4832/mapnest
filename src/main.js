@@ -4,7 +4,7 @@
 
 import { loadCountries, loadCities, loadStates, loadRivers, loadDistricts } from './dataLoader.js';
 import { searchCountries, searchCities }                from './search.js';
-import { renderCountryMap, renderCityMap, renderRegionMap, renderWorldMap, buildExportSVG } from './mapRenderer.js';
+import { renderCountryMap, renderCityMap, renderRegionMap, renderWorldMap } from './mapRenderer.js';
 import { exportSVG }                                    from './exporter.js';
 
 // ── State ────────────────────────────────────────────────────
@@ -20,10 +20,13 @@ const state = {
 // ── DOM refs ─────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 
-const searchInput      = $('search-input');
-const searchPrefix     = $('search-prefix');
-const searchDropdown   = $('search-dropdown');
-const searchClear      = $('search-clear');
+const searchInput        = $('search-input');
+const searchInputWrapper = $('search-input-wrapper');
+const selectionChip      = $('selection-chip');
+const chipValue          = $('chip-value');
+const chipRemove         = $('chip-remove');
+const searchDropdown     = $('search-dropdown');
+const searchClear        = $('search-clear');
 
 const mapViewport      = $('map-viewport');
 const emptyState       = $('empty-state');
@@ -34,7 +37,7 @@ const mapLabel         = $('map-label');
 
 const btnGenerate      = $('btn-generate');
 const btnExport        = $('btn-export');
-const styleRadios      = document.querySelectorAll('.style-radio');
+const styleSelect      = $('style-select');
 const neighborToggle   = $('neighbor-toggle');
 
 const mapTypeRadios    = document.querySelectorAll('.map-type-radio');
@@ -57,7 +60,13 @@ function bindEvents() {
   searchInput.addEventListener('focus',   onSearchInput);
   searchInput.addEventListener('keydown', onSearchKeydown);
 
-  searchClear.addEventListener('click', clearSearch);
+  searchClear.addEventListener('click', () => {
+    searchInput.value = '';
+    searchClear.style.display = 'none';
+    closeDropdown();
+  });
+
+  chipRemove.addEventListener('click', clearSearch);
 
   // Close dropdown on outside click
   document.addEventListener('click', e => {
@@ -70,20 +79,8 @@ function bindEvents() {
   // Keyboard nav inside dropdown
   searchDropdown.addEventListener('keydown', onDropdownKeydown);
   
-  function getSelectedStyle() {
-    const checked = document.querySelector('.style-radio:checked');
-    return checked ? checked.value : 'minimalistGray';
-  }
-
-  // Style config auto-update if map is already generated
-  styleRadios.forEach(radio => {
-    radio.addEventListener('change', () => {
-      // Update UI classes
-      document.querySelectorAll('.style-card').forEach(card => card.classList.remove('active'));
-      radio.closest('.style-card').classList.add('active');
-
-      if (mapOutput.classList.contains('active')) handleGenerate();
-    });
+  styleSelect.addEventListener('change', () => {
+    if (mapOutput.classList.contains('active')) handleGenerate();
   });
   
   neighborToggle.addEventListener('change', () => {
@@ -110,13 +107,6 @@ function onSearchInput() {
   const q = searchInput.value.trim();
   searchClear.style.display = q ? 'flex' : 'none';
   
-  // If the user starts typing, we're in "Searching" mode, not "Selected" mode.
-  if (state.selectedFeature) {
-    state.selectedFeature = null;
-    searchPrefix.textContent = "Search...";
-    searchPrefix.style.color = '#888';
-  }
-
   if (!q) { closeDropdown(); return; }
 
   clearTimeout(state.searchTimer);
@@ -127,14 +117,10 @@ async function runSearch(q) {
   if (state.mode === 'country' || state.mode === 'region') {
     if (!state.countries) {
       showDropdownMsg('loading');
-      try { 
-        state.countries = await loadCountries(); 
-        console.log("Sampler of loaded countries:", state.countries.features.slice(0, 5).map(f => f.properties.name));
-      }
+      try { state.countries = await loadCountries(); }
       catch { showDropdownMsg('error', 'Could not load country data.'); return; }
     }
     const results = searchCountries(q, state.countries);
-    console.log(`Search for "${q}" returned ${results.length} results`, results);
     renderDropdown(results, state.mode);
   } else if (state.mode === 'city') {
     if (!state.cities) {
@@ -211,12 +197,12 @@ function onDropdownKeydown(e) {
 function selectFeature(feature) {
   state.selectedFeature = feature;
   const name = feature.properties.name || feature.properties.NAME || 'Unknown';
-  searchInput.value = name;
-  searchPrefix.textContent = "Selected:";
-  searchPrefix.style.display = 'inline-block';
-  searchPrefix.style.color = 'var(--text-mut)';
   
-  searchClear.style.display = 'flex';
+  // Show Chip, Hide Input
+  chipValue.textContent = name;
+  selectionChip.classList.add('active');
+  searchInputWrapper.style.display = 'none';
+  
   closeDropdown();
 }
 
@@ -231,15 +217,12 @@ async function handleGenerate() {
   const feature = state.selectedFeature;
   const name = state.mode === 'world' ? 'World' : (feature.properties.name || feature.properties.NAME || '');
   
-  // Make container active early so its dimensions (clientWidth) are non-zero for D3
+  // Make container active early so dimensions are available
   mapOutput.classList.add('active');
   
-  console.log(`Generating ${state.mode} map for: ${name}`, feature);
-
   try {
     if (!state.countries) state.countries = await loadCountries();
-    
-    const selectedStyle = document.querySelector('.style-radio:checked')?.value || 'minimalistGray';
+    const selectedStyle = styleSelect.value;
 
     if (state.mode === 'world') {
       renderWorldMap(svgContainer, state.countries, selectedStyle);
@@ -255,13 +238,11 @@ async function handleGenerate() {
         selectedStyle
       );
     } else if (state.mode === 'region') {
-      console.log("Fetching region data...");
       const [statesData, districtsData, riversData] = await Promise.all([
         loadStates(), 
         loadDistricts(feature.properties.numericId),
         loadRivers()
       ]);
-      console.log("Region data loaded:", { states: statesData?.features?.length, districts: districtsData?.features?.length });
       renderRegionMap(
         svgContainer, 
         feature, 
@@ -272,7 +253,8 @@ async function handleGenerate() {
         selectedStyle
       );
     } else if (state.mode === 'city') {
-      renderCityMap(svgContainer, feature, state.countries, neighborToggle.checked, selectedStyle);
+      const [statesData, riversData] = await Promise.all([loadStates(), loadRivers()]);
+      renderCityMap(svgContainer, feature, state.countries, statesData, riversData, neighborToggle.checked, selectedStyle);
     }
     
     mapLabel.textContent = `${name} MAP`.toUpperCase();
@@ -299,8 +281,8 @@ function hideLoading() {
 
 function clearSearch() {
   searchInput.value = '';
-  searchPrefix.textContent = "";
-  searchPrefix.style.display = 'none';
+  selectionChip.classList.remove('active');
+  searchInputWrapper.style.display = 'flex';
   searchClear.style.display = 'none';
   state.selectedFeature = null;
   closeDropdown();
@@ -320,17 +302,13 @@ async function handleExport() {
     return;
   }
 
-
   btnExport.textContent = 'Generating…';
-  
-  // Logic simplified: export the generated SVGs from the DOM.
   const svgs = svgContainer.querySelectorAll('svg');
   if (svgs.length === 0) return;
   
   svgs.forEach((svg, i) => {
     const rawName = state.mode === 'world' ? 'world-map' : (state.selectedFeature.properties.name || 'map');
     const suffix = svgs.length > 1 ? `-style-${i+1}` : '';
-
     exportSVG(svg, rawName + suffix);
   });
   
